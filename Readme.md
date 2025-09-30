@@ -15,6 +15,13 @@ This action is an amalgamation of a few old actions which did below. (All WIP)
 - Upload to testflight
 
 
+Params
+==============
+- `configuration=Debug`
+	- Note: if the configuration is spelled incorrectly (eg `debug` instead of `Debug`) the bundles from
+		SPM package dependencies will be missing and `copy`s will fail.
+
+
 Params & Secrets Required
 ===================
 - `TeamIdentifier=AA1A111A1` to find installed certificate
