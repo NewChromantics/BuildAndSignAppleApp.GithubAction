@@ -146,10 +146,6 @@ export class AppleBuildParams
 {
 	constructor(ProjectPath,Scheme,Destination,Sdk,Configuration,AdditionalParams)
 	{
-		//	append xcodeproj if missing
-		if ( ProjectPath && !ProjectPath.endsWith('.xcodeproj') )
-			ProjectPath += '.xcodeproj';
-		
 		Destination = SanitiseXcodeDestination(Destination);
 		
 		//	required (thus turn to string)
@@ -158,6 +154,7 @@ export class AppleBuildParams
 		this.Destination = `${Destination}`;
 		
 		//	optional
+		//	ProjectPath can be a folder, or xyz.xcodeproj, or if blank, xcode looks in CWD
 		this.ProjectPath = ProjectPath;
 		this.Sdk = Sdk;
 
