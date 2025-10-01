@@ -17,7 +17,7 @@ inputs:
   type: string
   description: "Scheme Destination, eg. platform=macOS. See output on failing runs for options."
  Sdk:
-  required: true
+  required: false
   type: string
   description: "macos, ios, appletvos, visionos"
  AdditionalParams:

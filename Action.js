@@ -22,7 +22,7 @@ async function RunAction()
 	const ProjectPath = GetParam('ProjectPath',null);
 	const Scheme = GetParam('Scheme');
 	const Destination = GetParam('Destination');
-	const Sdk = GetParam('Sdk');
+	const Sdk = GetParam('Sdk',null);
 	const Configuration = GetParam('Configuration');
 	const AdditionalParams = GetParam('AdditionalParams',null);
 	

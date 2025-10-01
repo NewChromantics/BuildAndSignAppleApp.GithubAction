@@ -185,6 +185,9 @@ export class AppleBuildParams
 		if ( this.ProjectPath )
 			Args.push(`-project`,this.ProjectPath);
 	
+		if ( this.Sdk )
+			Args.push(`-sdk`,this.Sdk);
+		
 		//  gr: removed
 		//    `-workspace`, `${ProjectPath}/project.xcworkspace`,
 		//  from these as it was erroring with an unknown error on xcode11/mojave (but okay on xcode10/high sierra)
