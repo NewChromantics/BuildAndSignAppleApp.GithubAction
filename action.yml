@@ -3,23 +3,23 @@ inputs:
  ProjectPath:
   required: false
   type: string
-  description: "Path to .xcodeproj if not in the current working directory"
+  description: "Path to .xcodeproj, or it's directory, if not in the current working directory. xcodebuild -project XYZ"
  Scheme:
   required: true
   type: string
-  description: "Scheme of project to build"
+  description: "Scheme of project to build. xcodebuild -scheme XYZ"
  Configuration:
   required: true
   type: string
-  description: "Configuration of scheme (eg. Debug or Release)"
+  description: "Configuration of scheme (eg. Debug or Release). xcodebuild -configuration XYZ"
  Destination:
   required: true
   type: string
-  description: "Scheme Destination, eg. platform=macOS. See output on failing runs for options."
+  description: "Scheme Destination, eg. platform=macOS. See output on failing runs for options. xcodebuild -destination XYZ"
  Sdk:
   required: false
   type: string
-  description: "macos, ios, appletvos, visionos"
+  description: "macos, ios, appletvos, visionos. xcodebuild -sdk XYZ"
  AdditionalParams:
   required: false
   type: string
