@@ -8,6 +8,10 @@ inputs:
   required: true
   type: string
   description: "Scheme of project to build"
+ Configuration:
+  required: true
+  type: string
+  description: "Configuration of scheme (eg. Debug or Release)"
  Destination:
   required: true
   type: string
