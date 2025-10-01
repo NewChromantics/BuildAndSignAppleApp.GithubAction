@@ -24,6 +24,11 @@ inputs:
   required: false
   type: string
   description: "Additional arguments to pass to xcodebuild"
+ RewritePackageUrls:
+  required: false
+  type: string
+  description: "Rewrite package urls before build. eg. to insert PAT to access private repositories. Usage; https://github.com/yourpackage=https://YOUR_SECRET_PAT@github.com/yourpackage;"
+
 
 secrets:
 

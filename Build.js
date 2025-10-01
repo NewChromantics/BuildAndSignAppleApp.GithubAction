@@ -1,5 +1,5 @@
 import ChildProcess from "child_process";
-
+import * as FileSystem from "fs/promises"
 
 
 function CreatePromise()
@@ -146,12 +146,6 @@ export class AppleBuildParams
 {
 	constructor(ProjectPath,Scheme,Destination,Sdk,Configuration,AdditionalParams)
 	{
-		//	append xcodeproj if missing
-		//	if omitted from build, it looks in the current path for any .xcodeproj
-		//	but using -project requires .xcodeproj in the argument
-		if ( ProjectPath && !ProjectPath.endsWith('.xcodeproj') )
-			ProjectPath += '.xcodeproj';
-		
 		Destination = SanitiseXcodeDestination(Destination);
 		
 		//	required (thus turn to string)
@@ -329,11 +323,90 @@ export async function Clean(BuildScheme,Destination,Sdk,Configuration)
 	throw `todo: clean`
 }
 
+async function ResolveProjectPath(ProjectPath)
+{
+	//	gotta find project filename
+	if ( !ProjectPath )
+	{
+		throw `todo: if no ProjectPath provided, need to manually resolve the filename`;
+	}
+	
+	//	already ends with .xcodeproj, lets assume it's good
+	if ( ProjectPath.endsWith('.xcodeproj') )
+		return ProjectPath;
+
+	ProjectPath += '.xcodeproj';
+	return ProjectPath;
+}
+
+async function RewritePackageUrlInPbxProj(ProjectPath,RewriteMap)
+{
+	ProjectPath = await ResolveProjectPath(ProjectPath);
+	const PbxPath = `${ProjectPath}/project.pbxproj`;
+
+	let Pbx = await FileSystem.readFile(PbxPath);
+	Pbx = Pbx.toString();
+	
+	let Matches = 0;
+	for ( let [MatchUrl,NewUrl] of Object.entries(RewriteMap) )
+	{
+		function GetNewUrl(MatchString)
+		{
+			Matches++;
+			//console.warn(`GetNewUrl(${Match})`);
+			let Replacement = MatchString.replace(MatchUrl,NewUrl);
+			return Replacement;
+		}
+		//	gr: simpler without regex
+		const Pattern = `repositoryURL = "${MatchUrl}";`;
+		//const regex = new RegExp(Pattern);
+		const NewPbx = Pbx.replaceAll( Pattern, GetNewUrl );
+		if ( NewPbx == Pbx )
+			throw `Failed to match replacing-url ${MatchUrl}`;
+
+		Pbx = NewPbx;
+	}
+	
+	console.log(`Replacing ${PbxPath} after ${Object.entries(RewriteMap).length} changes...`);
+	await FileSystem.writeFile( PbxPath, Pbx );
+}
+
+//	return dictionary of [MatchUrl] = NewUrl
+function ParseRewritePackageUrls(RewritePackageUrls)
+{
+	//	mutliple entries with ;
+	RewritePackageUrls = RewritePackageUrls.split(';');
+	
+	const RewriteMap = {};
+	for ( let KeyValue of RewritePackageUrls )
+	{
+		const Parts = KeyValue.split('=');
+		if ( Parts.length != 2 )
+		{
+			throw `Rewrite-url pattern expected \"old=new;\" got \"${KeyValue}\"`;
+		}
+		RewriteMap[Parts[0]] = Parts[1];
+	}
+	return RewriteMap;
+}
+
 //	assume params are present from caller
 //	only param testing here is for specific validation
-export async function Build(ProjectPath,Scheme,Destination,Sdk,Configuration,AdditionalParams)
+export async function Build(ProjectPath,Scheme,Destination,Sdk,Configuration,AdditionalParams,RewritePackageUrls)
 {
+	//	append xcodeproj if missing
+	//	if omitted from build, it looks in the current path for any .xcodeproj
+	//	but using -project requires .xcodeproj in the argument
+	if ( ProjectPath )
+		ProjectPath = await ResolveProjectPath(ProjectPath);
+	
 	let BuildParams = new AppleBuildParams(ProjectPath, Scheme, Destination, Sdk, Configuration, AdditionalParams );
+
+	if ( RewritePackageUrls )
+	{
+		const RewriteMap = ParseRewritePackageUrls(RewritePackageUrls);
+		await RewritePackageUrlInPbxProj(ProjectPath,RewriteMap);
+	}
 	
 	//	print out debug
 	await PrintProjectSchemesAndConfigurations(BuildParams.ProjectPath);

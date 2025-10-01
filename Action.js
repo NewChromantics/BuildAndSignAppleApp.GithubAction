@@ -25,8 +25,9 @@ async function RunAction()
 	const Sdk = GetParam('Sdk',null);
 	const Configuration = GetParam('Configuration');
 	const AdditionalParams = GetParam('AdditionalParams',null);
+	const RewritePackageUrls = GetParam('RewritePackageUrls',null);
 	
-	const BuildResults = await Build( ProjectPath, Scheme, Destination, Sdk, Configuration, AdditionalParams );
+	const BuildResults = await Build( ProjectPath, Scheme, Destination, Sdk, Configuration, AdditionalParams, RewritePackageUrls );
 	throw `output build results`;
 }
 
