@@ -144,8 +144,7 @@ function SanitiseXcodeDestination(Destination)
 
 export class AppleBuildParams
 {
-	//	BuildProductDir overriding output path 
-	constructor(ProjectPath,Scheme,Destination,Sdk,Configuration,AdditionalParams,BuildProductDir)
+	constructor(ProjectPath,Scheme,Destination,Sdk,Configuration,AdditionalParams)
 	{
 		//	append xcodeproj if missing
 		if ( ProjectPath && !ProjectPath.endsWith('.xcodeproj') )
@@ -157,7 +156,6 @@ export class AppleBuildParams
 		this.Scheme = `${Scheme}`;
 		this.Configuration = `${Configuration}`;
 		this.Destination = `${Destination}`;
-		this.BuildProductDir = `${BuildProductDir}`;
 		
 		//	optional
 		this.ProjectPath = ProjectPath;
@@ -328,9 +326,9 @@ export async function Clean(BuildScheme,Destination,Sdk,Configuration)
 
 //	assume params are present from caller
 //	only param testing here is for specific validation
-export async function Build(ProjectPath,Scheme,Destination,Sdk,Configuration,BuildProductDir,AdditionalParams)
+export async function Build(ProjectPath,Scheme,Destination,Sdk,Configuration,AdditionalParams)
 {
-	let BuildParams = new AppleBuildParams(ProjectPath, Scheme, Destination, Sdk, Configuration, AdditionalParams, BuildProductDir );
+	let BuildParams = new AppleBuildParams(ProjectPath, Scheme, Destination, Sdk, Configuration, AdditionalParams );
 	
 	//	print out debug
 	await PrintProjectSchemesAndConfigurations(BuildParams.ProjectPath);

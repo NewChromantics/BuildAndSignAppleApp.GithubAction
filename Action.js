@@ -19,15 +19,14 @@ import { Build } from './Build.js'
 async function RunAction()
 {
 	//	build project
-	const ProjectPath = GetParam('Project');
+	const ProjectPath = GetParam('ProjectPath',null);
 	const Scheme = GetParam('Scheme');
 	const Destination = GetParam('Destination');
 	const Sdk = GetParam('Sdk');
 	const Configuration = GetParam('Configuration');
-	const BuildProductDir = GetParam('BuildProductDir');
 	const AdditionalParams = GetParam('AdditionalParams',null);
 	
-	const BuildResults = await Build( ProjectPath, Scheme, Destination, Sdk, Configuration, BuildProductDir, AdditionalParams );
+	const BuildResults = await Build( ProjectPath, Scheme, Destination, Sdk, Configuration, AdditionalParams );
 	throw `output build results`;
 }
 
