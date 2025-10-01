@@ -1,132 +1,7 @@
-import ChildProcess from "child_process";
 import * as FileSystem from "fs/promises"
+import * as Path from "path"
+import { Exec, PrintStdOut, PrintStdErr } from './Execute.js'
 
-
-function CreatePromise()
-{
-	let Callbacks = {};
-	let PromiseHandler = function (Resolve,Reject)
-	{
-		Callbacks.Resolve = Resolve;
-		Callbacks.Reject = Reject;
-	}
-	let Prom = new Promise(PromiseHandler);
-	Prom.Resolve = Callbacks.Resolve;
-	Prom.Reject = Callbacks.Reject;
-	return Prom;
-}
-
-function PrintStdOut(Lines)
-{
-	for ( let Line of Lines )
-	{
-		console.log(`${Line}`);
-	}
-}
-
-function PrintStdErr(Lines)
-{
-	for ( let Line of Lines )
-	{
-		console.warn(`${Line}`);
-	}
-}
-
-//	the childprocess exec isnt actually async
-//	lets make a nicer func
-//	plus, spawn() and exec() work quite differently.
-//	similarly, some uses of exec with escaping arguments break some apps
-//	and not others
-async function Exec(Exe,Arguments,OnStdOut,OnStdErr,UseSpawn=false,EscapeArguments=false)
-{
-	OnStdOut = OnStdOut ?? PrintStdOut;
-	OnStdErr = OnStdErr ?? PrintStdErr;
-	
-	const ExecPromise = CreatePromise();
-
-	//	need to use spawn for long running or large-output executions
-	if ( UseSpawn )
-	{
-		let ProcessError;
-		function OnProcessError(Error)
-		{
-			ProcessError = Error;
-		}
-		function OnProcessExit(ExitCode)
-		{
-			//console.log(`OnProcessExit(${ExitCode}) null=crash`);
-			if ( ExitCode === null )
-				return OnError(`Null exit code from process (crash?)`);
-			
-			if ( ProcessError )
-				ExecPromise.Reject(ProcessError);
-			else if ( ExitCode != 0 )
-				ExecPromise.Reject(`ExitCode=${ExitCode}`);
-			else
-				ExecPromise.Resolve(ExitCode);
-		}
-		
-		//	buffer to one big string
-		let AllStdOut = "";
-		let AllStdErr = "";
-		function OnProcessStdOut(Data)
-		{
-			let Lines = Data.toString().split('\n').map( Line => Line.trimEnd() ).filter( Line => Line.length > 0 );
-			OnStdOut(Lines);
-		}
-		function OnProcessStdErr(Data)
-		{
-			let Lines = Data.toString().split('\n').map( Line => Line.trimEnd() ).filter( Line => Line.length > 0 );
-			OnStdErr(Lines);
-		}
-		
-		const Process = ChildProcess.spawn( Exe, Arguments );
-		Process.on('error',OnProcessError);
-		Process.stdout.on('data',OnProcessStdOut);
-		Process.stderr.on('data',OnProcessStdErr);
-		Process.on("close",OnProcessExit);
-	}
-	else
-	{
-		function OnFinished(ExecError,StdOut,StdErr)
-		{
-			//  gr; is this not a string?
-			const StdOutLines = StdOut.toString().split('\n').filter( Line => Line.length > 0 );
-			OnStdOut(StdOutLines);
-			
-			const StdErrLines = StdErr.toString().split('\n').filter( Line => Line.length > 0 );
-			OnStdErr(StdErrLines);
-			
-			if ( ExecError )
-				ExecPromise.Reject(ExecError);
-			else
-				ExecPromise.Resolve();
-		}
-		
-		function GetCmdEscaped()
-		{
-			function EscapeArg(Argument)
-			{
-				return Argument.replace(' ','\\ ');
-			}
-			let EscapedArguments = Arguments.map(EscapeArg);
-			return `${Exe} ${EscapedArguments.join(' ')}`;
-		}
-		function GetCmdNotEscaped()
-		{
-			return `${Exe} ${Arguments.join(' ')}`;
-		}
-		
-		const Command = EscapeArguments ? GetCmdEscaped() : GetCmdNotEscaped();
-		
-		console.log(`exec(${Command})`);
-		const ExecProcessMeta = await ChildProcess.exec( Command, OnFinished );
-	}
-	
-	//console.log(`exec finished=${JSON.stringify(ExecProcessMeta)}`);
-	await ExecPromise;
-	return;
-}
 
 function SanitiseXcodeDestination(Destination)
 {
@@ -285,8 +160,8 @@ async function GetProjectMeta(BuildParams)
 }
 
 //	returns meta
-//	.BuildProductDirectory
-//	.BuildProductFilename
+//	.ProductDirectory /Volumes/something/output/data
+//	.ProductFilename YourApp.app
 async function BuildProject(BuildParams)
 {
 	const BuildOptions = BuildParams.GetXcodeArguments();
@@ -312,10 +187,19 @@ async function BuildProject(BuildParams)
 			   );
 	
 	console.log(JSON.stringify(ProjectMeta));
-	if ( !ProjectMeta.BuildDirectorys.length )
-		throw `Build didn't produce any build directories`;
+	if ( ProjectMeta.BuildDirectorys.length != 1 )
+		throw `Build detected wrong amount of build-directories (expecting 1); ${JSON.stringify(ProjectMeta.BuildDirectorys.length)}`;
+
+	if ( ProjectMeta.FullProductNames.length != 1 )
+		throw `Build detected wrong amount of product-names (expecting 1); ${JSON.stringify(ProjectMeta.FullProductNames.length)}`;
 	
-	return ProjectMeta;
+	//	resolve path in case it incldues .. or ., or process-relative paths etc back to pure dir for github
+	const BuildDirectory = Path.normalize(ProjectMeta.BuildDirectorys[0]);
+	
+	const BuildResultMeta = {};
+	BuildResultMeta.ProductDirectory = BuildDirectory; 
+	BuildResultMeta.ProductFilename = ProjectMeta.FullProductNames[0]; 
+	return BuildResultMeta;
 }
 
 export async function Clean(BuildScheme,Destination,Sdk,Configuration)
@@ -415,55 +299,7 @@ export async function Build(ProjectPath,Scheme,Destination,Sdk,Configuration,Add
 	console.log(`Building ${BuildParams.description}...`);
 	const BuildMeta = await BuildProject(BuildParams);
 	
+	//	todo: sign
 	
-	/*
-	
-	//  gr: Scheme.framework is not neccessarily the output
-	//  todo: get product name from build settings
-	let TargetDir;
-	
-	//  tsdk: For some reason these have undefined as the first item in the set?
-	Object.values(Regex).map( key => key.results.delete(undefined));
-	
-	if( Regex.BuildDirectorys.results.size && Regex.FullProductName.results.size)
-	{
-		console.log(`Using a Build Directory and FullProductName output: `)
-		console.log(Regex.BuildDirectorys.results)
-		console.log(Regex.FullProductName.results)
-		
-		// This is how you get the first item of a set
-		TargetDir = Regex.BuildDirectorys.results.values().next().value;
-		
-		let FileName = Regex.FullProductName.results.values().next().value;
-		
-		TargetDir += `/${FileName}`;
-		//    use the filename specified, as the upload filename
-		if ( !UploadFilename )
-			UploadFilename = FileName;
-	}
-	else if ( Regex.ScriptOutput.results.size )
-	{
-		console.log(`Using a script output: `)
-		console.log(Regex.ScriptOutput.results);
-		if ( Regex.ScriptOutput.results.size > 1 )
-		{
-			console.log(`Warning: Found multiple script output files!`);
-			TargetDir = Regex.ScriptOutput.results.values().next().value;
-		}
-	}
-	else
-	{
-		Object.values(Regex).map( key => console.log(key.results));
-		throw `Failed to find valid BuildDirectorys, FullProduct Names or Script Outputs from stdout`;
-	}
-	
-	TargetDir = normalize(TargetDir);
-	
-	console.log(`TargetDir=${TargetDir} (ls before upload)`);
-	await exec.exec("ls -l", [TargetDir] );
-	
-	console.log(`Uploading (UPLOAD_NAME=${UploadFilename}), with UPLOAD_DIR=${TargetDir}`);
-	core.setOutput('UPLOAD_NAME', UploadFilename);
-	core.setOutput('UPLOAD_DIR', TargetDir);
- */
+	return BuildMeta;
 }
