@@ -16,10 +16,16 @@ function CreatePromise()
 }
 
 
-export function PrintStdOut(Lines)
+//	pass false to not-trim
+export function PrintStdOut(Lines,TrimLength=100)
 {
 	for ( let Line of Lines )
 	{
+		if ( TrimLength != false && Line.length > TrimLength )
+		{
+			Line = Line.substring( 0, TrimLength );
+			Line += '...';
+		}
 		console.log(`${Line}`);
 	}
 }
@@ -80,6 +86,7 @@ export async function Exec(Exe,Arguments,OnStdOut,OnStdErr,UseSpawn=false,Escape
 			OnStdErr(Lines);
 		}
 		
+		console.log(`Spawn(${Exe},${Arguments})`);
 		const Process = ChildProcess.spawn( Exe, Arguments );
 		Process.on('error',OnProcessError);
 		Process.stdout.on('data',OnProcessStdOut);

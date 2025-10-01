@@ -49,13 +49,13 @@ export class AppleBuildParams
 	{
 		const Args = [];
 
-		//	require these
-		Args.push(`-scheme`, this.Scheme );
-
 		//	all optional
 		if ( this.ProjectPath )
 			Args.push(`-project`,this.ProjectPath);
-	
+		
+		//	require these
+		Args.push(`-scheme`, this.Scheme );
+
 		if ( this.Sdk )
 			Args.push(`-sdk`,this.Sdk);
 		
@@ -141,9 +141,7 @@ async function GetProjectMeta(BuildParams)
 		ProjectMeta = GatherProjectMeta(Lines,ProjectMeta);
 	}
 	
-	const IncludeDestination = true;
-	const IncludeConfiguration = true;
-	const PreBuildOptions = BuildParams.GetXcodeArguments(IncludeDestination,IncludeConfiguration);
+	const PreBuildOptions = BuildParams.GetXcodeArguments();
 	PreBuildOptions.push(`-showBuildSettings`);
 
 	console.log(`Listing build settings for ${BuildParams.description}...`);
@@ -156,7 +154,21 @@ async function GetProjectMeta(BuildParams)
 					);
 	
 	
-	return ProjectMeta;
+	//	resolve meta
+	console.log(JSON.stringify(ProjectMeta));
+	if ( ProjectMeta.BuildDirectorys.length != 1 )
+		throw `Build detected wrong amount of build-directories (expecting 1); ${JSON.stringify(ProjectMeta.BuildDirectorys.length)}`;
+	
+	if ( ProjectMeta.FullProductNames.length != 1 )
+		throw `Build detected wrong amount of product-names (expecting 1); ${JSON.stringify(ProjectMeta.FullProductNames.length)}`;
+	
+	//	resolve path in case it incldues .. or ., or process-relative paths etc back to pure dir for github
+	const BuildDirectory = Path.normalize(ProjectMeta.BuildDirectorys[0]);
+	
+	const OutputMeta = {};
+	OutputMeta.ProductDirectory = BuildDirectory; 
+	OutputMeta.ProductFilename = ProjectMeta.FullProductNames[0]; 
+	return OutputMeta;
 }
 
 //	returns meta
@@ -165,47 +177,23 @@ async function GetProjectMeta(BuildParams)
 async function BuildProject(BuildParams)
 {
 	const BuildOptions = BuildParams.GetXcodeArguments();
-	
-	//	add -showBuildSettings to get build-param output we can match
-	BuildOptions.push(`-showBuildSettings`);
-	
-	let ProjectMeta = {};
-	
-	function OnStdOut(Lines)
-	{
-		PrintStdOut(Lines);
-		ProjectMeta = GatherProjectMeta(Lines,ProjectMeta);
-	}
-	
+		
+	console.log(`---------Building product...`);
 	const UseSpawn = true;
 	await Exec(
 			   "xcodebuild",
 			   BuildOptions,
-			   OnStdOut,
+			   null,
 			   null,
 			   UseSpawn
 			   );
 	
-	console.log(JSON.stringify(ProjectMeta));
-	if ( ProjectMeta.BuildDirectorys.length != 1 )
-		throw `Build detected wrong amount of build-directories (expecting 1); ${JSON.stringify(ProjectMeta.BuildDirectorys.length)}`;
-
-	if ( ProjectMeta.FullProductNames.length != 1 )
-		throw `Build detected wrong amount of product-names (expecting 1); ${JSON.stringify(ProjectMeta.FullProductNames.length)}`;
+	console.log(`---------XCodeBuild product build successfull.`);
 	
-	//	resolve path in case it incldues .. or ., or process-relative paths etc back to pure dir for github
-	const BuildDirectory = Path.normalize(ProjectMeta.BuildDirectorys[0]);
-	
-	const BuildResultMeta = {};
-	BuildResultMeta.ProductDirectory = BuildDirectory; 
-	BuildResultMeta.ProductFilename = ProjectMeta.FullProductNames[0]; 
-	return BuildResultMeta;
+	//	we don't output meta here, as the build results don't include what we need
+	//	need to have gotten that from GetProjectMeta.
 }
 
-export async function Clean(BuildScheme,Destination,Sdk,Configuration)
-{
-	throw `todo: clean`
-}
 
 async function ResolveProjectPath(ProjectPath)
 {
@@ -251,7 +239,7 @@ async function RewritePackageUrlInPbxProj(ProjectPath,RewriteMap)
 		Pbx = NewPbx;
 	}
 	
-	console.log(`Replacing ${PbxPath} after ${Object.entries(RewriteMap).length} changes...`);
+	console.log(`---------Replacing ${PbxPath} after ${Object.entries(RewriteMap).length} changes...`);
 	await FileSystem.writeFile( PbxPath, Pbx );
 }
 
@@ -296,10 +284,10 @@ export async function Build(ProjectPath,Scheme,Destination,Sdk,Configuration,Add
 	await PrintProjectSchemesAndConfigurations(BuildParams.ProjectPath);
 	const ProjectMeta = await GetProjectMeta(BuildParams);
 	
-	console.log(`Building ${BuildParams.description}...`);
-	const BuildMeta = await BuildProject(BuildParams);
+	console.log(`---------Building ${BuildParams.description}...`);
+	//	this doesn't output new meta, we have to assume it matches the results of GetProjectMeta()
+	await BuildProject(BuildParams);
 	
-	//	todo: sign
 	
-	return BuildMeta;
+	return ProjectMeta;
 }
