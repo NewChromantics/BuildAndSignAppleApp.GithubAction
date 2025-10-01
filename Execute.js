@@ -17,7 +17,7 @@ function CreatePromise()
 
 
 //	pass false to not-trim
-export function PrintStdOut(Lines,TrimLength=150)
+export function PrintStdOut(Lines,TrimLength=false)
 {
 	for ( let Line of Lines )
 	{
