@@ -14,6 +14,12 @@ This action is an amalgamation of a few old actions which did below. (All WIP)
 - Packaged into installer (then signed with installer provision) for macos; making it MacAppStore compatible
 - Upload to testflight
 
+Action Outputs
+==================
+Use these outputs in your work flow with `${{ steps.yourstepid.outputs.ProductName }}`
+- `ProductName` Filename(or magic directory) of the build product. Eg. `YourApp.App` for mac apps
+- `ProductDirectory` Directory containing the built product (and other build files)
+
 
 Params
 ==============
