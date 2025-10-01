@@ -1,0 +1,32 @@
+name: 'Build Apple App'
+inputs:
+ ProjectPath:
+  required: false
+  type: string
+  description: "Path to .xcodeproj if not in the current working directory"
+ Scheme:
+  required: true
+  type: string
+  description: "Scheme of project to build"
+ Destination:
+  required: true
+  type: string
+  description: "Scheme Destination, eg. platform=macOS. See output on failing runs for options."
+ Sdk:
+  required: true
+  type: string
+  description: "macos, ios, appletvos, visionos"
+ AdditionalParams:
+  required: false
+  type: string
+  description: "Additional arguments to pass to xcodebuild"
+
+secrets:
+
+
+runs:
+  using: 'node20'
+  # gr: hack to fail if not running on a mac
+  pre: 'This action must run on macos runners'
+  pre-if: runner.os != 'macos'
+  main: 'Action.js'
