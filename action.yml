@@ -34,7 +34,7 @@ inputs:
   description: "true/false; Clean project before build. xcodebuild clean"
  ZipProduct:
   required: false
-  type:string 
+  type: string 
   description: "true/false to zip up product after build/packaging." 
  
  
