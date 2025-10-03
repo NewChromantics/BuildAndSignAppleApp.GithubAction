@@ -26,6 +26,8 @@ Params
 - `configuration=Debug`
 	- Note: if the configuration is spelled incorrectly (eg `debug` instead of `Debug`) the bundles from
 		SPM package dependencies will be missing and `copy`s will fail.
+- 'Clean=true|false'
+	- Will do a `clean` before building
 
 
 Params & Secrets Required

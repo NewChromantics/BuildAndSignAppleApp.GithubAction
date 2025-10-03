@@ -20,8 +20,9 @@ async function RunAction()
 	const Configuration = GetParam('Configuration');
 	const AdditionalParams = GetParam('AdditionalParams',null);
 	const RewritePackageUrls = GetParam('RewritePackageUrls',null);
+	const Clean = GetParam('Clean',false);
 	
-	const BuildResultMeta = await Build( ProjectPath, Scheme, Destination, Sdk, Configuration, AdditionalParams, RewritePackageUrls );
+	const BuildResultMeta = await Build( ProjectPath, Scheme, Destination, Sdk, Configuration, AdditionalParams, Clean, RewritePackageUrls );
 
 	console.log(`Listing output directory(${BuildResultMeta.ProductDirectory})...`);
 	await Exec("ls -l", [BuildResultMeta.ProductDirectory] );

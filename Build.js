@@ -171,9 +171,6 @@ async function GetProjectMeta(BuildParams)
 	return OutputMeta;
 }
 
-//	returns meta
-//	.ProductDirectory /Volumes/something/output/data
-//	.ProductFilename YourApp.app
 async function BuildProject(BuildParams)
 {
 	const BuildOptions = BuildParams.GetXcodeArguments();
@@ -192,6 +189,24 @@ async function BuildProject(BuildParams)
 	
 	//	we don't output meta here, as the build results don't include what we need
 	//	need to have gotten that from GetProjectMeta.
+}
+
+async function CleanProject(BuildParams)
+{
+	const BuildOptions = BuildParams.GetXcodeArguments();
+	BuildOptions.push('clean');
+	
+	console.log(`---------Cleaning product...`);
+	const UseSpawn = true;
+	await Exec(
+			   "xcodebuild",
+			   BuildOptions,
+			   null,
+			   null,
+			   UseSpawn
+			   );
+	
+	console.log(`---------XCodeBuild product clean successfull.`);
 }
 
 
@@ -264,7 +279,7 @@ function ParseRewritePackageUrls(RewritePackageUrls)
 
 //	assume params are present from caller
 //	only param testing here is for specific validation
-export async function Build(ProjectPath,Scheme,Destination,Sdk,Configuration,AdditionalParams,RewritePackageUrls)
+export async function Build(ProjectPath,Scheme,Destination,Sdk,Configuration,AdditionalParams,Clean,RewritePackageUrls)
 {
 	//	append xcodeproj if missing
 	//	if omitted from build, it looks in the current path for any .xcodeproj
@@ -274,6 +289,12 @@ export async function Build(ProjectPath,Scheme,Destination,Sdk,Configuration,Add
 	
 	let BuildParams = new AppleBuildParams(ProjectPath, Scheme, Destination, Sdk, Configuration, AdditionalParams );
 
+	if ( Clean )
+	{
+		console.log(`---------Cleaning ${BuildParams.description}...`);
+		await CleanProject(BuildParams);
+	}
+	
 	if ( RewritePackageUrls )
 	{
 		const RewriteMap = ParseRewritePackageUrls(RewritePackageUrls);
