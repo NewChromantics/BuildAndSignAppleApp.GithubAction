@@ -26,7 +26,14 @@ async function RunAction()
 	console.log(`Listing built output directory(${BuildResultMeta.ProductDirectory})...`);
 	await Exec("ls -l", [BuildResultMeta.ProductDirectory] );
 
+	//	output original build meta
+	console.log(`Build ProductName=${BuildResultMeta.ProductFilename}`);
+	core.setOutput('BuildProductName', BuildResultMeta.ProductFilename );
+
+	console.log(`Build ProductDirectory=${BuildResultMeta.ProductDirectory}`);
+	core.setOutput('BuildProductDirectory', BuildResultMeta.ProductDirectory );
 	
+
 	let OutputMeta = BuildResultMeta;
 	
 	const DoZipProduct = GetParam('ZipProduct',false);
@@ -38,16 +45,34 @@ async function RunAction()
 	console.log(`Listing output directory(${OutputMeta.ProductDirectory})...`);
 	await Exec("ls -l", [OutputMeta.ProductDirectory] );
 
+	//	output product name explicitly without (last) extension so it can be used to avoid .zip.zip in github workflow artifacts
+	const ProductName = PopLastFilenameExtension(OutputMeta.ProductFilename);
+	console.log(`Output ProductName=${ProductName}`);
+	core.setOutput('ProductName', ProductName );
 	
-	console.log(`Build Output ProductName=${OutputMeta.ProductFilename}`);
-	core.setOutput('ProductName', OutputMeta.ProductFilename );
+	console.log(`Output ProductFilename=${OutputMeta.ProductFilename}`);
+	core.setOutput('ProductFileName', OutputMeta.ProductFilename );
 
-	console.log(`Build Output ProductDirectory=${OutputMeta.ProductDirectory}`);
+	console.log(`Output ProductDirectory=${OutputMeta.ProductDirectory}`);
 	core.setOutput('ProductDirectory', OutputMeta.ProductDirectory );
 	
 	console.log(`Build action finished.`)
 }
 
+
+//	if the filename has at least one extension, remove it
+//	hello.app.zip -> hello.app
+//	hello.app -> hello
+//	hello -> hello
+function PopLastFilenameExtension(Filename)
+{
+	const Parts = Filename.split('.');
+	if ( Parts.length <= 1 )
+		return Filename;
+	const Popped = Parts.pop();
+	const ShorterFilename = Parts.join('.');
+	return ShorterFilename;
+}
 
 function OnRunFailed(Error)
 {

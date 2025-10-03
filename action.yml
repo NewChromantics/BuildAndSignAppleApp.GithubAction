@@ -40,10 +40,16 @@ inputs:
  
 outputs:
   ProductName: 
-    description: 'Name of the file/directory output. .App directory for mac apps. Changes to .zip or .dmg etc if packaged'
+    description: 'Output ProductFilename with last extension removed. Eg. Product.App.Zip->Product.App'
+  ProductFileName: 
+    description: 'Filename file/directory output. .App directory for mac apps. Changes to .zip or .dmg etc if packaged'
   ProductDirectory: 
-    description: 'Directory containing ProductName'
-    
+    description: 'Directory containing ProductFileName'
+  BuildProductName:
+    description: 'ProductName directly from xcode before any packaging'
+  BuildProductDirectory:
+    description: 'Directory of BuildProductName'
+
 secrets:
 
 
