@@ -14,6 +14,12 @@ This action is an amalgamation of a few old actions which did below. (All WIP)
 - Packaged into installer (then signed with installer provision) for macos; making it MacAppStore compatible
 - Upload to testflight
 
+Run Locally
+---------------
+You can use this action locally by prefixing any inputs with `--` as an argument (eg. `--ProductPath=path`)
+- `node ./Action.js --ProjectPath=~/Projects/YourProduct.xcodeproj --Configuration=Release --Clean=true --ZipProduct=true`
+
+
 Action Outputs
 ==================
 Use these outputs in your work flow with `${{ steps.yourstepid.outputs.ProductName }}`

@@ -28,8 +28,22 @@ inputs:
   required: false
   type: string
   description: "Rewrite package urls before build. eg. to insert PAT to access private repositories. Usage; https://github.com/yourpackage=https://YOUR_SECRET_PAT@github.com/yourpackage;"
-
-
+ Clean:
+  required: false
+  type: string	#	true/false
+  description: "true/false; Clean project before build. xcodebuild clean"
+ ZipProduct:
+  required: false
+  type:string 
+  description: "true/false to zip up product after build/packaging." 
+ 
+ 
+outputs:
+  ProductName: 
+    description: 'Name of the file/directory output. .App directory for mac apps. Changes to .zip or .dmg etc if packaged'
+  ProductDirectory: 
+    description: 'Directory containing ProductName'
+    
 secrets:
 
 
