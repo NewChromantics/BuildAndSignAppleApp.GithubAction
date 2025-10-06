@@ -17,7 +17,7 @@ This action is an amalgamation of a few old actions which did below. (All WIP)
 Run Locally
 ---------------
 You can use this action locally by prefixing any inputs with `--` as an argument (eg. `--ProductPath=path`)
-- `node ./Action.js --ProjectPath=~/Projects/YourProduct.xcodeproj --Configuration=Release --Clean=true --ZipProduct=true`
+- `node ./Action.js --ProjectPath=~/Projects/YourProduct.xcodeproj --Destination="generic/platform=macOS" --Configuration=ReleaseProduction --Clean=true --ZipProduct=true --NotarizeAppleId=graham@grahamreeves.com --NotarizeAppSpecificPassword=SomePassword --TeamIdentifier=abcdefg `
 
 
 Action Outputs

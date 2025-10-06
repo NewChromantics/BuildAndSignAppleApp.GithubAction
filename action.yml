@@ -36,7 +36,15 @@ inputs:
   required: false
   type: string 
   description: "true/false to zip up product after build/packaging." 
- 
+ NotarizeAppleId:
+  required: false
+  type: string
+  description: "Apple Id email to notarize with along with NotarizeAppSpecificPassword"
+ TeamIdentifier:
+  required: false
+  type: string
+  description: "Apple TeamIdentifier required for notarization"
+  
  
 outputs:
   ProductName: 
@@ -51,6 +59,10 @@ outputs:
     description: 'Directory of BuildProductName'
 
 secrets:
+ NotarizeAppSpecificPassword:
+  required: false
+  type: string
+  description: "If notarising, this is the app-specific-password issued to go with NotarizeAppleId"
 
 
 runs:

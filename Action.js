@@ -6,9 +6,9 @@ import * as FileSystem from "fs/promises"
 import * as Path from "path"
 import { spawn } from "child_process";
 import { GetParam } from './Params.js'
-import { Build, ZipProduct } from './Build.js'
+import { Build } from './Build.js'
 import { Exec } from "./Execute.js";
-
+import { ZipProduct, NotarizeAndStapleApp }  from './Signing.js'
 
 async function RunAction()
 {
@@ -32,6 +32,22 @@ async function RunAction()
 
 	console.log(`Build ProductDirectory=${BuildResultMeta.ProductDirectory}`);
 	core.setOutput('BuildProductDirectory', BuildResultMeta.ProductDirectory );
+	
+	//	notarize
+	const NotarizeAppleId = GetParam('NotarizeAppleId',false);
+	if ( NotarizeAppleId )
+	{
+		const NotarizePassword = GetParam('NotarizeAppSpecificPassword',false);
+		if ( !NotarizePassword )
+			throw `To notarize with NotarizeAppleId need to provide NotarizeAppSpecificPassword`;
+		const TeamIdentifier = GetParam('TeamIdentifier',false);
+		if ( !TeamIdentifier )
+			throw `To notarize with NotarizeAppleId need to provide TeamIdentifier`;
+		
+		//	notarize app in-place
+		await NotarizeAndStapleApp(BuildResultMeta.ProductDirectory, BuildResultMeta.ProductFilename, TeamIdentifier, NotarizeAppleId,NotarizePassword);
+	}
+		
 	
 
 	let OutputMeta = BuildResultMeta;
@@ -82,3 +98,5 @@ function OnRunFailed(Error)
 
 //  if this throws, set a github action error
 RunAction().catch(OnRunFailed);
+
+

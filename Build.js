@@ -95,7 +95,7 @@ async function PrintProjectSchemesAndConfigurations(ProjectPath)
 }
 
 //	returns array of matches
-function MatchRegex(Lines,Pattern)
+export function MatchRegex(Lines,Pattern)
 {
 	if ( !Array.isArray(Lines) )
 		throw `Lines for regex is not array (${typeof Lines})`;
@@ -313,28 +313,3 @@ export async function Build(ProjectPath,Scheme,Destination,Sdk,Configuration,Add
 	return ProjectMeta;
 }
 
-//	returns new meta 
-//	.ProductDirectory
-//	.ProductFilename
-export async function ZipProduct(ProductDirectory,ProductName)
-{
-	//	we use ditto to preserve symlinks
-	//	ditto -c -k --sequesterRsrc --keepParent /volume/hello/world.app helloworld.zip
-	const OutputDirectory = `./`;
-	const OutputFilename = `${ProductName}.zip`;
-	const OutputPath = `${OutputDirectory}${OutputFilename}`;
-	const InputFilename = `${ProductDirectory}/${ProductName}`;
-	
-	const Args = 
-	[
-	 '-c -k --sequesterRsrc --keepParent',
-	 InputFilename,
-	 OutputPath
-	];
-	await Exec("ditto", Args );
-	
-	const OutputMeta = {};
-	OutputMeta.ProductDirectory = OutputDirectory;
-	OutputMeta.ProductFilename = OutputFilename;
-	return OutputMeta;
-}
