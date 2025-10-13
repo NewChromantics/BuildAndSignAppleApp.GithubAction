@@ -35,7 +35,11 @@ inputs:
  ZipProduct:
   required: false
   type: string 
-  description: "true/false to zip up product after build/packaging." 
+  description: "true/false to zip up product after build/packaging."
+ NotarizeProduct:
+  required: false
+  type: string
+  description: "Optional parameter to forcibly enable/disable notarization. Usually the presence of NotarizeAppleId starts notarizing."
  NotarizeAppleId:
   required: false
   type: string

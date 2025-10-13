@@ -77,13 +77,21 @@ export function GetParam(Key,DefaultValueIfMissing=undefined)
 		return Params[CliKey];
 
 	//	try github inputs
-	const InputValue = core.getInput(Key);
+	let InputValue = core.getInput(Key);
 	if ( InputValue )
+	{
+		//	turn false and true keywords into bools, so that "false" == false
+		InputValue = TypeifyValue(InputValue);
 		return InputValue;
+	}
 	
 	//	now try env var
 	if ( process.env.hasOwnProperty(Key) )
-		return process.env[Key];
+	{
+		InputValue = process.env[Key];
+		InputValue = TypeifyValue(InputValue);
+		return InputValue;
+	}
 	
 	if ( DefaultValueIfMissing === undefined )
 		throw `Missing required parameter, github input or env var "${Key}"`;

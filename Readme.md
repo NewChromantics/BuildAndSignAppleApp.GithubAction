@@ -20,6 +20,8 @@ You can use this action locally by prefixing any inputs with `--` as an argument
 - `node ./Action.js --ProjectPath=~/Projects/YourProduct.xcodeproj --Destination="generic/platform=macOS" --Configuration=ReleaseProduction --Clean=true --ZipProduct=true --NotarizeAppleId=graham@grahamreeves.com --NotarizeAppSpecificPassword=SomePassword --TeamIdentifier=abcdefg `
 
 
+
+
 Action Outputs
 ==================
 Use these outputs in your work flow with `${{ steps.yourstepid.outputs.ProductName }}`
@@ -29,6 +31,8 @@ Use these outputs in your work flow with `${{ steps.yourstepid.outputs.ProductNa
 
 Params
 ==============
+See `action.yml` for a live comprehensive list of params.
+
 - `configuration=Debug`
 	- Note: if the configuration is spelled incorrectly (eg `debug` instead of `Debug`) the bundles from
 		SPM package dependencies will be missing and `copy`s will fail.
@@ -73,3 +77,11 @@ Optional - macos appstore/Testflight
 	- Export to `mac_installer.p12` with password
 	- `base64 -i ./mac_installer.p12 > mac_installer.p12.base64.txt`
 	- `export InstallerCertificate_P12_Base64=$(base64 -i ./mac_installer.p12)`
+
+Obscure Error Messages
+=================
+When notarising, if an invalid apple id is supplied (eg. `"true"`) you will get this error
+```
+Error: HTTP status code: 401. Your Apple ID has been locked. Visit iForgot to reset your account
+(https://iforgot.apple.com), then generate a new app-specific password. Ensure that all authentication arguments are correct.
+```

@@ -21,6 +21,7 @@ async function RunAction()
 	const AdditionalParams = GetParam('AdditionalParams',null);
 	const RewritePackageUrls = GetParam('RewritePackageUrls',null);
 	const Clean = GetParam('Clean',false);
+	const ForceNotarizeProduct = GetParam('NotarizeProduct',null);	//	null so we can explicitly check for true/false
 	
 	const BuildResultMeta = await Build( ProjectPath, Scheme, Destination, Sdk, Configuration, AdditionalParams, Clean, RewritePackageUrls );
 	console.log(`Listing built output directory(${BuildResultMeta.ProductDirectory})...`);
@@ -33,10 +34,16 @@ async function RunAction()
 	console.log(`Build ProductDirectory=${BuildResultMeta.ProductDirectory}`);
 	core.setOutput('BuildProductDirectory', BuildResultMeta.ProductDirectory );
 	
-	//	notarize
+	//	notarize if user provided
 	const NotarizeAppleId = GetParam('NotarizeAppleId',false);
-	if ( NotarizeAppleId )
+	let Notarize = (NotarizeAppleId && NotarizeAppleId.length>0);
+	//	but can also override this
+	if ( ForceNotarizeProduct === true || ForceNotarizeProduct === false )
+		Notarize = ForceNotarizeProduct;
+
+	if ( Notarize )
 	{
+		console.log(`Notarizing with ${NotarizeAppleId}`);
 		const NotarizePassword = GetParam('NotarizeAppSpecificPassword',false);
 		if ( !NotarizePassword )
 			throw `To notarize with NotarizeAppleId need to provide NotarizeAppSpecificPassword`;
